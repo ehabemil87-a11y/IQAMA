@@ -1,0 +1,1355 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مجموعة الذيابي | العلاقات الحكومية</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --bg:#F5F3EC;
+  --panel:#FFFFFF;
+  --ink:#16241C;
+  --ink-soft:#4B564D;
+  --sidebar:#0C1F17;
+  --sidebar-2:#123527;
+  --sidebar-ink:#CFE3D6;
+  --sidebar-muted:#7FA391;
+  --primary:#0E5C3F;
+  --primary-deep:#0A3D2A;
+  --gold:#C9A23C;
+  --gold-deep:#8F7024;
+  --red:#B5352C;
+  --red-deep:#7E241D;
+  --orange:#C97A1F;
+  --yellow:#A9822A;
+  --blue:#31607F;
+  --ok:#2E7A50;
+  --gray:#8A8F89;
+  --border:#E4DFD0;
+  --border-2:#D8D2C0;
+  --shadow: 0 8px 24px rgba(13,30,20,0.08);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'IBM Plex Sans Arabic', sans-serif;
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+.num{font-family:'IBM Plex Mono', monospace;}
+button, input{font-family:inherit;}
+
+/* ---------- shell ---------- */
+.app-shell{
+  display:flex;
+  min-height:100vh;
+}
+.sidebar{
+  width:260px;
+  flex:0 0 260px;
+  background:linear-gradient(180deg,var(--sidebar),var(--sidebar-2) 140%);
+  color:var(--sidebar-ink);
+  padding:22px 16px;
+  position:sticky;
+  top:0;
+  height:100vh;
+  overflow-y:auto;
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+.brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:4px 6px 14px;
+  border-bottom:1px solid rgba(207,227,214,0.14);
+}
+.brand-mark{
+  width:40px;height:40px;border-radius:10px;
+  background:linear-gradient(135deg,var(--gold),var(--gold-deep));
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;color:#241C05;font-size:17px;
+  flex:0 0 auto;
+}
+.brand-text .t1{font-weight:700;font-size:15px;color:#fff;line-height:1.3;}
+.brand-text .t2{font-size:11.5px;color:var(--sidebar-muted);margin-top:2px;}
+
+.nav-group{margin-top:4px;}
+.nav-group-title{
+  font-size:11px;color:var(--sidebar-muted);
+  letter-spacing:.04em;
+  padding:0 10px;margin-bottom:6px;
+  text-transform:none;
+}
+.nav-link{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:9px 10px;border-radius:8px;
+  color:var(--sidebar-ink);text-decoration:none;font-size:13.5px;
+  cursor:pointer; margin-bottom:2px;
+  transition:background .15s ease, color .15s ease;
+  border:1px solid transparent;
+}
+.nav-link:hover{background:rgba(255,255,255,0.06);}
+.nav-link.active{
+  background:rgba(201,162,60,0.16);
+  border-color:rgba(201,162,60,0.4);
+  color:#fff;
+}
+.nav-link .dot{
+  width:7px;height:7px;border-radius:50%;background:var(--sidebar-muted);flex:0 0 auto;
+}
+.nav-link .badge-count{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px;background:rgba(255,255,255,0.08);
+  border-radius:20px;padding:1px 7px;color:var(--sidebar-muted);
+}
+.nav-link.has-alert .badge-count{background:var(--red);color:#fff;}
+.nav-link.has-alert .dot{background:var(--red);}
+
+.sidebar-foot{margin-top:auto;padding:10px 8px 2px;font-size:11px;color:var(--sidebar-muted);border-top:1px solid rgba(207,227,214,0.14);padding-top:12px;}
+
+.main{
+  flex:1;min-width:0;
+  padding:26px 34px 60px;
+}
+.topbar{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:16px;
+  margin-bottom:22px;flex-wrap:wrap;
+}
+.topbar h1{font-size:22px;margin:0 0 4px;font-weight:700;}
+.topbar .sub{color:var(--ink-soft);font-size:13px;margin:0;}
+.topbar-actions{display:flex;gap:8px;align-items:center;}
+
+.btn{
+  border:1px solid var(--border-2);background:var(--panel);color:var(--ink);
+  padding:8px 14px;border-radius:8px;font-size:13px;cursor:pointer;
+  display:inline-flex;align-items:center;gap:6px;transition:all .15s ease;
+}
+.btn:hover{border-color:var(--primary);color:var(--primary-deep);}
+.btn.primary{background:var(--primary);color:#fff;border-color:var(--primary);}
+.btn.primary:hover{background:var(--primary-deep);}
+.btn.ghost{background:transparent;}
+.btn.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+
+.search-box{
+  position:relative;
+}
+.search-box input{
+  border:1px solid var(--border-2);background:var(--panel);
+  border-radius:8px;padding:8px 34px 8px 12px;font-size:13px;width:230px;color:var(--ink);
+}
+.search-box input:focus{outline:2px solid var(--primary);outline-offset:1px;}
+.search-box svg{position:absolute;right:11px;top:50%;transform:translateY(-50%);opacity:.45;}
+
+/* ---------- KPI ---------- */
+.kpi-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+  gap:12px;margin-bottom:22px;
+}
+.kpi-card{
+  background:var(--panel);border:1px solid var(--border);border-radius:12px;
+  padding:16px 18px;box-shadow:var(--shadow);
+  border-top:3px solid var(--primary);
+}
+.kpi-card.tone-red{border-top-color:var(--red);}
+.kpi-card.tone-orange{border-top-color:var(--orange);}
+.kpi-card.tone-gold{border-top-color:var(--gold-deep);}
+.kpi-card.tone-blue{border-top-color:var(--blue);}
+.kpi-card .kpi-label{font-size:12px;color:var(--ink-soft);margin-bottom:6px;}
+.kpi-card .kpi-value{font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:600;}
+.kpi-card .kpi-value.small{font-size:19px;}
+.kpi-card .kpi-foot{font-size:11.5px;color:var(--gray);margin-top:4px;}
+
+/* ---------- departure board ---------- */
+.board-wrap{
+  background:radial-gradient(circle at 30% 0%, #16352A, #0B1F16 70%);
+  border-radius:14px;padding:18px 18px 10px;margin-bottom:26px;
+  box-shadow:0 14px 34px rgba(9,25,17,0.35);
+  border:1px solid rgba(201,162,60,0.25);
+}
+.board-head{
+  display:flex;align-items:center;justify-content:space-between;
+  color:var(--sidebar-ink);padding:2px 6px 12px;
+  border-bottom:1px solid rgba(207,227,214,0.14);margin-bottom:6px;
+}
+.board-head h2{font-size:14px;margin:0;font-weight:600;letter-spacing:.02em;color:#F1EBD8;}
+.board-head .live{
+  font-size:11px;color:#8FD6A8;display:flex;align-items:center;gap:6px;
+  font-family:'IBM Plex Mono',monospace;
+}
+.live .blip{width:7px;height:7px;border-radius:50%;background:#3EDC7C;box-shadow:0 0 8px #3EDC7C;animation:blip 1.6s infinite ease-in-out;}
+@keyframes blip{0%,100%{opacity:1;}50%{opacity:.25;}}
+
+.board-row{
+  display:grid;grid-template-columns:110px 1fr 150px 120px;gap:12px;
+  align-items:center;padding:9px 6px;border-bottom:1px dashed rgba(207,227,214,0.10);
+  font-family:'IBM Plex Mono', monospace;font-size:12.5px;color:#DCE9E1;
+  opacity:0;animation:flap .45s ease forwards;
+}
+@media (prefers-reduced-motion: reduce){.board-row{animation:none;opacity:1;}}
+@keyframes flap{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:translateY(0);}}
+.board-row .cat{color:#9FD1B7;font-size:11px;}
+.board-row .desc{color:#F4F1E4;font-size:13px;font-family:'IBM Plex Sans Arabic',sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.board-row .flap{
+  justify-self:start;padding:3px 10px;border-radius:5px;font-weight:600;letter-spacing:.02em;
+  text-align:center;min-width:110px;
+}
+.board-row .go{color:#9FD1B7;text-align:left;font-size:11px;cursor:pointer;text-decoration:underline;text-underline-offset:2px;}
+.board-empty{color:#9FD1B7;font-size:13px;padding:20px 8px;text-align:center;}
+
+.flap.sev-expired{background:var(--red-deep);color:#fff;}
+.flap.sev-critical{background:var(--red);color:#fff;}
+.flap.sev-warn30{background:var(--orange);color:#fff;}
+.flap.sev-warn60{background:var(--yellow);color:#241C05;}
+.flap.sev-warn90{background:var(--blue);color:#fff;}
+.flap.sev-ok{background:rgba(255,255,255,0.08);color:#DCE9E1;}
+.flap.sev-missing{background:var(--gray);color:#fff;}
+
+.alert-block{margin-bottom:14px;}
+.alert-block-title{
+  font-size:12.5px;font-weight:600;color:var(--ink-soft);margin-bottom:7px;
+  display:flex;align-items:center;gap:6px;
+}
+.alert-block+.alert-block{padding-top:2px;border-top:1px dashed var(--border-2);}
+
+/* ---------- chips / filters ---------- */
+.chip-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
+.chip{
+  border:1px solid var(--border-2);background:var(--panel);border-radius:20px;
+  padding:6px 14px;font-size:12.5px;cursor:pointer;display:flex;align-items:center;gap:7px;
+  transition:all .15s ease;
+}
+.chip .n{font-family:'IBM Plex Mono',monospace;font-weight:600;}
+.chip:hover{border-color:var(--ink);}
+.chip.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+.chip .dot{width:8px;height:8px;border-radius:50%;}
+.dot.sev-expired,.chip.sev-expired .dot{background:var(--red-deep);}
+.dot.sev-critical,.chip.sev-critical .dot{background:var(--red);}
+.dot.sev-warn30,.chip.sev-warn30 .dot{background:var(--orange);}
+.dot.sev-warn60,.chip.sev-warn60 .dot{background:var(--yellow);}
+.dot.sev-warn90,.chip.sev-warn90 .dot{background:var(--blue);}
+.dot.sev-ok,.chip.sev-ok .dot{background:var(--ok);}
+.dot.sev-missing,.chip.sev-missing .dot{background:var(--gray);}
+.dot.sev-active,.chip.sev-active .dot{background:var(--ok);}
+.dot.sev-inactive,.chip.sev-inactive .dot{background:var(--gray);}
+
+/* ---------- table ---------- */
+.table-wrap{
+  background:var(--panel);border:1px solid var(--border);border-radius:12px;
+  overflow:auto; box-shadow:var(--shadow); max-height:64vh;
+}
+table{border-collapse:collapse;width:100%;font-size:13px;min-width:600px;}
+thead th{
+  position:sticky;top:0;background:#F1EEE3;border-bottom:1px solid var(--border-2);
+  padding:10px 12px;text-align:right;font-weight:600;color:var(--ink);
+  cursor:pointer;white-space:nowrap;user-select:none;z-index:2;
+}
+thead th:hover{color:var(--primary-deep);}
+thead th .arrow{opacity:.4;font-size:11px;margin-left:4px;}
+tbody td{padding:9px 12px;border-bottom:1px solid var(--border);white-space:nowrap;color:var(--ink);}
+tbody tr:hover{background:#FAF8F1;}
+tbody tr.row-expired{background:rgba(181,53,44,0.07);}
+tbody tr.row-critical{background:rgba(201,122,31,0.08);}
+.cell-badge{
+  display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:20px;
+  font-size:11.5px;font-weight:600;font-family:'IBM Plex Mono',monospace;
+}
+.cell-badge.sev-expired{background:rgba(126,36,29,0.14);color:var(--red-deep);}
+.cell-badge.sev-critical{background:rgba(181,53,44,0.13);color:var(--red);}
+.cell-badge.sev-warn30{background:rgba(201,122,31,0.13);color:var(--orange);}
+.cell-badge.sev-warn60{background:rgba(169,130,42,0.15);color:var(--yellow);}
+.cell-badge.sev-warn90{background:rgba(49,96,127,0.13);color:var(--blue);}
+.cell-badge.sev-ok{background:rgba(46,122,80,0.12);color:var(--ok);}
+.cell-badge.sev-missing{background:rgba(138,143,137,0.16);color:#5b5f5a;}
+.cell-badge.sev-active{background:rgba(46,122,80,0.12);color:var(--ok);}
+.cell-badge.sev-inactive{background:rgba(138,143,137,0.16);color:#5b5f5a;}
+
+.state{padding:60px 20px;text-align:center;color:var(--ink-soft);}
+.state.err{color:var(--red-deep);}
+.state a{color:var(--primary-deep);}
+.spinner{
+  width:26px;height:26px;border-radius:50%;border:3px solid var(--border-2);
+  border-top-color:var(--primary);margin:0 auto 14px;animation:spin .8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.section{display:none;}
+.section.active{display:block;animation:fadein .25s ease;}
+@keyframes fadein{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+
+.controls{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;}
+.controls .left{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.foot-note{font-size:11.5px;color:var(--gray);margin-top:10px;}
+
+.mini-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-bottom:8px;}
+.mini-card{
+  background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;
+  cursor:pointer;box-shadow:var(--shadow);transition:transform .15s ease, box-shadow .15s ease;
+}
+.mini-card:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(13,30,20,0.13);}
+.mini-card .mc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:10px;}
+.mini-card .mc-title{font-size:13.5px;font-weight:600;line-height:1.4;}
+.mini-card .mc-cat{font-size:11px;color:var(--gray);margin-top:2px;}
+.mini-card .mc-stats{display:flex;gap:14px;font-family:'IBM Plex Mono',monospace;}
+.mini-card .mc-stat{text-align:center;}
+.mini-card .mc-stat b{display:block;font-size:16px;}
+.mini-card .mc-stat span{font-size:10px;color:var(--gray);}
+
+.back-btn{
+  display:flex;align-items:center;gap:6px;
+  background:rgba(255,255,255,0.06);border:1px solid rgba(207,227,214,0.18);
+  color:var(--sidebar-ink);border-radius:8px;padding:7px 10px;font-size:12px;cursor:pointer;
+  margin-bottom:14px;width:100%;justify-content:center;transition:background .15s ease;
+}
+.back-btn:hover{background:rgba(255,255,255,0.12);}
+
+@media print{
+  .sidebar,.topbar-actions,.chip-row,.board-wrap .live,.foot-note,.back-btn{display:none !important;}
+  .app-shell{display:block !important;}
+  .main{padding:0 !important;}
+  .table-wrap{max-height:none !important;overflow:visible !important;box-shadow:none;border:none;}
+  thead th{position:static !important;}
+  body{background:#fff !important;}
+  .kpi-grid,.mini-grid{display:none !important;}
+  .board-wrap{box-shadow:none;border:1px solid #ccc;}
+}
+
+.kpi-clickable{cursor:pointer;}
+.kpi-clickable:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(13,30,20,0.13);}
+
+.report-modal{
+  display:none;position:fixed;inset:0;z-index:500;background:rgba(12,25,18,0.55);
+  align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto;
+}
+.report-modal.open{display:flex;}
+.report-modal-inner{
+  background:var(--bg);border-radius:14px;max-width:1000px;width:100%;
+  box-shadow:0 24px 60px rgba(0,0,0,0.35);padding:22px 26px 28px;
+}
+.report-modal-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:16px;flex-wrap:wrap;}
+.report-modal-head h2{margin:0;font-size:19px;}
+
+@media print{
+  body.printing-report .app-shell{display:none !important;}
+  body.printing-report .report-modal{position:static !important;background:none !important;padding:0 !important;display:block !important;}
+  body.printing-report .report-modal .topbar-actions{display:none !important;}
+}
+
+@media (max-width: 880px){
+  .app-shell{flex-direction:column;}
+  .sidebar{width:100%;height:auto;position:relative;flex-direction:row;overflow-x:auto;padding:14px;}
+  .sidebar .nav-group{flex:0 0 auto;}
+  .brand{border-bottom:none;padding:0 10px 0 0;}
+  .sidebar-foot{display:none;}
+  .main{padding:18px 16px 50px;}
+  .board-row{grid-template-columns:80px 1fr 100px;}
+  .board-row .go{display:none;}
+}
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+  <aside class="sidebar">
+    <button class="back-btn" id="backBtn" onclick="goBack()">→ رجوع للبوابة الرئيسية</button>
+    <div class="brand">
+      <div class="brand-mark">ذ</div>
+      <div class="brand-text">
+        <div class="t1">مجموعة الذيابي</div>
+        <div class="t2">العلاقات الحكومية</div>
+      </div>
+    </div>
+
+    <nav id="nav" class="nav-groups"></nav>
+
+    <div class="sidebar-foot">لوحة متابعة داخلية · تحدَّث بيانات كل شيت عند التنقل</div>
+  </aside>
+
+  <main class="main">
+    <div id="sections"></div>
+  </main>
+</div>
+
+<div class="report-modal" id="reportModal">
+  <div class="report-modal-inner">
+    <div class="report-modal-head">
+      <div>
+        <h2 id="reportModalTitle">تقرير</h2>
+        <p id="reportModalSub" class="sub" style="margin:2px 0 0;"></p>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn" id="reportExportBtn">⬇ تصدير Excel</button>
+        <button class="btn" id="reportPrintBtn">🖨 طباعة</button>
+        <button class="btn" id="reportCloseBtn">✕ إغلاق</button>
+      </div>
+    </div>
+    <div id="reportModalBody"></div>
+  </div>
+</div>
+
+<script>
+/* ============================= CONFIG ============================= */
+const BASE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRFjmke7ISH9Jt_dzZfHssmhri7MFsF3uhn40q0pBSck3afSm1aucJLV5jnpFx5dg/pub?single=true&output=csv&gid=";
+
+const SHEETS = [
+  { id:"ins_resident",   title:"تاريخ انتهاء التأمين الطبي للمقيمين", category:"التأمين الطبي",
+    gid:"1759762619", type:"date", dateCol:"تاريخ انتهاء التأمين", threshold:5, flagEmpty:true },
+
+  { id:"ins_visitor",    title:"تاريخ انتهاء التأمين للزائرين", category:"التأمين الطبي",
+    gid:"421965771", type:"date", dateCol:"تاريخ انتهاء التأمين", threshold:5, flagEmpty:true },
+
+  { id:"visa_exit_reentry_exp", title:"انتهاء تاريخ تأشيرات الخروج و العودة", category:"التأشيرات",
+    gid:"1558256627", type:"date", dateCol:"تاريخ انتهاء التأشيرة", threshold:1, flagEmpty:false },
+
+  { id:"visa_final_exit", title:"تأشيرات الخروج النهائي", category:"التأشيرات",
+    gid:"43476037", type:"date", dateCol:"السفر قبل", threshold:5, flagEmpty:false },
+
+  { id:"visa_unused", title:"تأشيرات الخروج و العودة غير المستخدمة", category:"التأشيرات",
+    gid:"1626217147", type:"status", statusCol:"حالة التأشيرة" },
+
+  { id:"iqama_sponsor", title:"إنتهاء إقامات الكفالات الشخصية", category:"الإقامات",
+    gid:"1813661279", type:"date", dateCol:"تاريخ إنتهاء الإقامة ميلادى", threshold:5, flagEmpty:false },
+
+  { id:"iqama_resident", title:"تاريخ انتهاء الاقامات للمقيمين", category:"الإقامات",
+    gid:"1447237118", type:"date", dateCol:"تاريخ انتهاء الاقامة", threshold:5, flagEmpty:false },
+
+  { id:"violations", title:"المخالفات المرورية على الاقامات", category:"المخالفات",
+    gid:"1726385053", type:"sum", sumCol:"إجمالي المخالفات (ريال سعودي)" },
+
+  { id:"visitor_exit", title:"تاريخ انتهاء الزائرين", category:"الزوار",
+    gid:"40377795", type:"date", dateCol:"الخروج قبل (ميلادي)", threshold:5, flagEmpty:false },
+];
+SHEETS.forEach(s=>{ s.url = BASE + s.gid; });
+
+const CATEGORY_ORDER = ["التأمين الطبي","التأشيرات","الإقامات","الزوار","المخالفات"];
+
+const SEV_LABELS = {
+  expired:"منتهي", critical:"عاجل", warn30:"خلال 30 يوم", warn60:"خلال 60 يوم",
+  warn90:"خلال 90 يوم", ok:"سليم", missing:"بيانات ناقصة", active:"فعالة", inactive:"غير فعالة"
+};
+
+/* ============================= STATE ============================= */
+const store = {}; // id -> { status:'idle|loading|ready|error', fields:[], rows:[], error, filter:'all', search:'' }
+const homeReportData = { urgent:[], missing:[], unused:[], violations:[] };
+SHEETS.forEach(s=> store[s.id] = { status:"idle", fields:[], rows:[], error:null, filter:"all", filterCol:"__primary", search:"", sortCol:null, sortDir:1 });
+
+/* ============================= HELPERS ============================= */
+function normalizeDigits(s){
+  const map={'٠':'0','١':'1','٢':'2','٣':'3','٤':'4','٥':'5','٦':'6','٧':'7','٨':'8','٩':'9'};
+  return s.replace(/[٠-٩]/g, d=>map[d]);
+}
+function parseDate(raw){
+  if(raw===undefined||raw===null) return null;
+  let s = normalizeDigits(String(raw).trim());
+  if(!s) return null;
+
+  // Month-name formats ("September 28, 2026", "16-Apr-26", ISO strings, etc.) — let the
+  // browser's native parser handle these directly; don't touch them with the slash/dash
+  // rewriting below, which was previously mangling them (e.g. blindly splitting on the first
+  // space turned "September 28, 2026" into just "September", so it looked like an empty/invalid
+  // date and got flagged as "بيانات ناقصة" even though a perfectly valid date was right there).
+  if(/[A-Za-z]/.test(s)){
+    const dtNative = new Date(s);
+    if(!isNaN(dtNative.getTime())) return dtNative;
+  }
+
+  // Only strip a trailing time-of-day chunk if it actually looks like one (e.g. "01/08/2026 14:30").
+  s = s.replace(/,?\s+\d{1,2}:\d{2}(:\d{2})?\s*(AM|PM|am|pm)?$/, '').trim();
+  s = s.replace(/\./g,'/').replace(/-/g,'/');
+  const m = s.match(/^(\d{1,4})\/(\d{1,2})\/(\d{1,4})$/);
+  if(m){
+    let a=+m[1], b=+m[2], c=+m[3], year,month,day;
+    if(a>31){ year=a; month=b; day=c; }
+    else if(c>31 || c>=100){
+      day=a; month=b; year=c;
+      if(month>12){ day=b; month=a; }
+    } else {
+      day=a; month=b; year = c<100 ? 2000+c : c;
+    }
+    if(month<1||month>12||day<1||day>31) return null;
+    const dt = new Date(year, month-1, day);
+    return isNaN(dt.getTime()) ? null : dt;
+  }
+  const dt2 = new Date(s);
+  return isNaN(dt2.getTime()) ? null : dt2;
+}
+function daysDiff(date){
+  const today = new Date(); today.setHours(0,0,0,0);
+  const d = new Date(date); d.setHours(0,0,0,0);
+  return Math.round((d-today)/86400000);
+}
+function parseNumber(raw){
+  if(raw===undefined||raw===null) return 0;
+  const cleaned = String(raw).replace(/[^\d.\-]/g,'');
+  const n = parseFloat(cleaned);
+  return isNaN(n) ? 0 : n;
+}
+function fmtNum(n){ return new Intl.NumberFormat('en-US').format(Math.round(n*100)/100); }
+function esc(s){ return String(s===undefined||s===null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+function classifyDate(days, threshold, isMissing){
+  if(isMissing) return {sev:"missing", label:SEV_LABELS.missing};
+  if(days<0) return {sev:"expired", label:`منتهي منذ ${Math.abs(days)} يوم`};
+  if(days<=threshold) return {sev:"critical", label:`باقي ${days} يوم`};
+  if(days<=30) return {sev:"warn30", label:`باقي ${days} يوم`};
+  if(days<=60) return {sev:"warn60", label:`باقي ${days} يوم`};
+  if(days<=90) return {sev:"warn90", label:`باقي ${days} يوم`};
+  return {sev:"ok", label:`باقي ${days} يوم`};
+}
+// Generic tiering (<=30 / <=60 / <=90) for any OTHER expiry-date column a sheet happens to
+// have, beyond the one specific column called out in the requirements — no special near-term
+// "critical" tier here, just the plain 30/60/90 bands "زي باقي المتصفحات".
+function classifyGeneric(days, isMissing){
+  if(isMissing) return {sev:"missing", label:SEV_LABELS.missing};
+  if(days<0) return {sev:"expired", label:`منتهي منذ ${Math.abs(days)} يوم`};
+  if(days<=30) return {sev:"warn30", label:`باقي ${days} يوم`};
+  if(days<=60) return {sev:"warn60", label:`باقي ${days} يوم`};
+  if(days<=90) return {sev:"warn90", label:`باقي ${days} يوم`};
+  return {sev:"ok", label:`باقي ${days} يوم`};
+}
+// Auto-detect any OTHER column in a sheet that looks like an expiry date (by name + by actually
+// parsing as dates), excluding the sheet's own officially-tracked column and Hijri-labelled ones.
+function detectExtraDateColumns(cfg, fields, rows){
+  const primary = new Set([cfg.dateCol, cfg.statusCol, cfg.sumCol].filter(Boolean));
+  const nameLooksDateish = f => /انتهاء|صلاحية/.test(f) && !/هجري/.test(f);
+  const candidates = fields.filter(f => !primary.has(f) && nameLooksDateish(f));
+  const confirmed = [];
+  candidates.forEach(col=>{
+    let checked=0, ok=0;
+    for(let i=0;i<rows.length && checked<15;i++){
+      const v = rows[i][col];
+      if(v && String(v).trim()){ checked++; if(parseDate(v)) ok++; }
+    }
+    if(checked>=2 && ok/checked>=0.5) confirmed.push(col);
+  });
+  return confirmed;
+}
+function isActiveStatus(v){
+  const s = String(v||"").trim();
+  if(!s) return false;
+  const negative = /(غير|منتهي|ملغ|مستخدم|موقوف|معطل)/;
+  const positive = /(فعال|ساري|سارية|صالح|نشط)/;
+  if(negative.test(s)) return false;
+  return positive.test(s);
+}
+function findCol(fields, target){
+  const norm = x => String(x).replace(/\s+/g,' ').trim();
+  const t = norm(target);
+  return fields.find(f=> norm(f)===t) || fields.find(f=> norm(f).includes(t)) || null;
+}
+function pickDescriptor(row, fields, excludeCol){
+  const parts=[];
+  for(const f of fields){
+    if(f===excludeCol) continue;
+    const v = row[f];
+    if(v && String(v).trim() && String(v).trim().length<40){ parts.push(String(v).trim()); }
+    if(parts.length>=2) break;
+  }
+  return parts.join(' — ') || '—';
+}
+
+/* ============================= FETCH ============================= */
+function looksLikeHTML(text){ return /^\s*<(!doctype|html)/i.test(text || ''); }
+
+// This mirrors the exact fetchCSV() technique already used successfully elsewhere in the
+// same portal (vehicles/certs/invoices/iqama use this same allorigins + corsproxy.io combo) —
+// so we lead with what's already proven to work in your real GitHub Pages environment, then
+// add a couple of extra relays afterwards purely as backup in case one of them is ever down.
+const RELAY_ATTEMPTS = [
+  // 1) direct — succeeds only if Google ever adds CORS headers, or if hosted same-origin
+  async (url) => {
+    const r = await fetchWithTimeout(url, 12000);
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return await r.text();
+  },
+  // 2) allorigins, JSON-wrapped /get?url= form (same as the rest of this portal)
+  async (url) => {
+    const r = await fetchWithTimeout('https://api.allorigins.win/get?url='+encodeURIComponent(url), 12000);
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const d = await r.json();
+    if(!d || !d.contents) throw new Error('استجابة فارغة');
+    return d.contents;
+  },
+  // 3) corsproxy.io, old concat form (same as the rest of this portal)
+  async (url) => {
+    const r = await fetchWithTimeout('https://corsproxy.io/?'+encodeURIComponent(url), 12000);
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return await r.text();
+  },
+  // 4-5) extra backups only, in case both of the above are briefly down
+  async (url) => {
+    const r = await fetchWithTimeout('https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(url), 12000);
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return await r.text();
+  },
+  async (url) => {
+    const r = await fetchWithTimeout('https://corsfix.com/'+url, 12000);
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return await r.text();
+  },
+];
+
+function fetchWithTimeout(url, ms){
+  // Deliberately NOT using AbortController/AbortSignal here: when this page runs inside
+  // an <iframe> (as it does once embedded in the portal), Chrome's cross-frame messaging
+  // tries to structured-clone the fetch options and throws
+  // "Failed to execute 'postMessage' ... AbortSignal object could not be cloned."
+  // A plain race against a timer avoids passing any signal into fetch() at all.
+  return Promise.race([
+    fetch(url, {cache:"no-store"}),
+    new Promise((_, reject)=> setTimeout(()=>reject(new Error('انتهت مهلة الاتصال')), ms))
+  ]);
+}
+
+async function fetchCSVRobust(url){
+  let lastErr = new Error('تعذّر الاتصال بالمصدر');
+  for(const attempt of RELAY_ATTEMPTS){
+    try{
+      const text = await attempt(url);
+      if(!text || looksLikeHTML(text)){ lastErr = new Error('الرابط لا يعيد ملف CSV (تحقّق أن الشيت منشور للجميع)'); continue; }
+      return text;
+    } catch(e){ lastErr = e; }
+  }
+  throw lastErr;
+}
+
+// Primary source: a Google Apps Script Web App bound to the actual spreadsheet.
+// It returns ALL 9 sheets in one JSON response, keyed by numeric sheet gid — Google talking
+// to Google, no third-party proxy involved at all. This should be far more reliable than the
+// CSV+proxy relay chain, which stays below purely as a fallback in case this URL is ever down.
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzCSPlodNmqseoaHy7HYpXCliZgMslVl3UK0oYiIHA6TFJYoBW5PPKqHUfoEVJBLUB0/exec";
+
+let appsScriptStatus = 'idle'; // idle | loading | ready | error
+let appsScriptPayload = null;
+let appsScriptPromise = null;
+
+function fetchAppsScriptPayload(){
+  if(appsScriptStatus==='ready') return Promise.resolve(appsScriptPayload);
+  if(appsScriptStatus==='loading') return appsScriptPromise;
+  appsScriptStatus = 'loading';
+  const attempts = [
+    async ()=>{
+      const r = await fetchWithTimeout(APPS_SCRIPT_URL, 15000);
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      return await r.json();
+    },
+    async ()=>{
+      const r = await fetchWithTimeout('https://api.allorigins.win/get?url='+encodeURIComponent(APPS_SCRIPT_URL), 15000);
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      const d = await r.json();
+      if(!d || !d.contents) throw new Error('استجابة فارغة');
+      return JSON.parse(d.contents);
+    },
+    async ()=>{
+      const r = await fetchWithTimeout('https://corsproxy.io/?'+encodeURIComponent(APPS_SCRIPT_URL), 15000);
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      return await r.json();
+    },
+  ];
+  appsScriptPromise = (async ()=>{
+    let lastErr = new Error('تعذّر الاتصال بـ Apps Script');
+    for(const attempt of attempts){
+      try{ const data = await attempt(); appsScriptPayload = data; appsScriptStatus = 'ready'; return data; }
+      catch(e){ lastErr = e; }
+    }
+    appsScriptStatus = 'error';
+    throw lastErr;
+  })();
+  return appsScriptPromise;
+}
+
+function fetchSheet(id){
+  const cfg = SHEETS.find(s=>s.id===id);
+  const s = store[id];
+  if(s.status==='loading') return s._promise;
+  s.status='loading'; s.error=null;
+  s._promise = (async ()=>{
+    // 1) Try the Apps Script JSON endpoint first
+    try{
+      const payload = await fetchAppsScriptPayload();
+      const sheetData = payload[cfg.gid] || payload[String(cfg.gid)];
+      if(!sheetData || !Array.isArray(sheetData.rows)) throw new Error('لا يوجد شيت بهذا المعرّف في استجابة Apps Script');
+      const rows = sheetData.rows;
+      const fields = rows.length ? Object.keys(rows[0]) : [];
+      s.fields = fields; s.rows = rows; s.status='ready';
+      annotate(cfg, s);
+      return s;
+    } catch(e1){
+      // 2) Fall back to the direct CSV link + CORS relay chain
+      try{
+        const text = await fetchCSVRobust(cfg.url);
+        const parsed = Papa.parse(text, {header:true, skipEmptyLines:true});
+        const fields = parsed.meta.fields || [];
+        const rows = parsed.data.filter(r=> fields.some(f=> String(r[f]||'').trim()!==''));
+        s.fields = fields; s.rows = rows; s.status='ready';
+        annotate(cfg, s);
+        return s;
+      } catch(e2){
+        s.status='error';
+        s.error = (e2 && e2.message) || (e1 && e1.message) || 'حدث خطأ غير متوقع';
+        throw e2;
+      }
+    }
+  })();
+  return s._promise;
+}
+
+function annotate(cfg, s){
+  if(cfg.type==='date'){
+    const col = findCol(s.fields, cfg.dateCol) || cfg.dateCol;
+    s._col = col;
+    s.rows.forEach(row=>{
+      const raw = row[col];
+      const d = parseDate(raw);
+      const missing = !raw || String(raw).trim()==='' || !d;
+      const flagMissing = missing && cfg.flagEmpty;
+      const days = d ? daysDiff(d) : null;
+      const cls = (missing && !cfg.flagEmpty) ? {sev:"ok", label:"—"} : classifyDate(days, cfg.threshold, missing);
+      row.__sev = cls.sev; row.__label = cls.label; row.__days = days;
+    });
+  } else if(cfg.type==='status'){
+    const col = findCol(s.fields, cfg.statusCol) || cfg.statusCol;
+    s._col = col;
+    s.rows.forEach(row=>{
+      const active = isActiveStatus(row[col]);
+      row.__sev = active ? "active" : "inactive";
+      row.__label = active ? SEV_LABELS.active : SEV_LABELS.inactive;
+    });
+  } else if(cfg.type==='sum'){
+    const col = findCol(s.fields, cfg.sumCol) || cfg.sumCol;
+    s._col = col;
+    s.rows.forEach(row=>{ row.__amount = parseNumber(row[col]); });
+  }
+
+  // Any OTHER expiry-date column this sheet happens to have (besides the one officially
+  // tracked above) gets the plain 30/60/90-day tiering too, same as every other tab.
+  s.extraDateCols = detectExtraDateColumns(cfg, s.fields, s.rows);
+  if(s.extraDateCols.length){
+    s.rows.forEach(row=>{
+      row.__extra = {};
+      s.extraDateCols.forEach(col=>{
+        const raw = row[col];
+        const d = parseDate(raw);
+        const missing = !raw || String(raw).trim()==='' || !d;
+        const days = d ? daysDiff(d) : null;
+        const cls = classifyGeneric(days, missing);
+        row.__extra[col] = { sev: cls.sev, label: cls.label, days };
+      });
+    });
+  }
+}
+
+/* ============================= NAV ============================= */
+function buildNav(){
+  const nav = document.getElementById('nav');
+  let html = `<div class="nav-group">
+      <div class="nav-link" data-nav="home" style="font-weight:600;">
+        <span>🏠 الرئيسية</span>
+      </div>
+    </div>`;
+  CATEGORY_ORDER.forEach(cat=>{
+    html += `<div class="nav-group"><div class="nav-group-title">${esc(cat)}</div>`;
+    SHEETS.filter(s=>s.category===cat).forEach(s=>{
+      html += `<div class="nav-link" data-nav="${s.id}">
+          <span><span class="dot"></span> ${esc(s.title)}</span>
+          <span class="badge-count" data-count="${s.id}">–</span>
+        </div>`;
+    });
+    html += `</div>`;
+  });
+  nav.innerHTML = html;
+  nav.querySelectorAll('.nav-link[data-nav]').forEach(el=>{
+    el.addEventListener('click', ()=> location.hash = el.dataset.nav);
+  });
+}
+
+function setActiveNav(id){
+  document.querySelectorAll('.nav-link[data-nav]').forEach(el=>{
+    el.classList.toggle('active', el.dataset.nav===id);
+  });
+}
+
+function updateNavCounts(){
+  SHEETS.forEach(s=>{
+    const st = store[s.id];
+    const el = document.querySelector(`[data-count="${s.id}"]`);
+    if(!el) return;
+    if(st.status!=='ready'){ el.textContent='–'; return; }
+    let n=0;
+    if(s.type==='date') n = st.rows.filter(r=> r.__sev==='expired'||r.__sev==='critical'||r.__sev==='missing').length;
+    else if(s.type==='status') n = st.rows.filter(r=>r.__sev==='active').length;
+    else if(s.type==='sum') n = st.rows.length;
+    el.textContent = n;
+    const link = el.closest('.nav-link');
+    if(s.type!=='sum') link.classList.toggle('has-alert', n>0 && s.type==='date');
+  });
+}
+
+/* ============================= RENDER: SECTION SHELL ============================= */
+function ensureSections(){
+  const root = document.getElementById('sections');
+  let html = `<section class="section" id="sec-home"></section>`;
+  SHEETS.forEach(s=>{ html += `<section class="section" id="sec-${s.id}"></section>`; });
+  root.innerHTML = html;
+}
+
+function showSection(id){
+  document.querySelectorAll('.section').forEach(sec=> sec.classList.toggle('active', sec.id===`sec-${id}`));
+  setActiveNav(id);
+}
+
+/* ============================= RENDER: SHEET PAGE ============================= */
+function renderSheetSection(cfg){
+  const sec = document.getElementById(`sec-${cfg.id}`);
+  const s = store[cfg.id];
+
+  let controls = '';
+  if(s.status==='ready'){
+    if(cfg.type==='date'){
+      controls += buildDateAlertBlock(cfg, s, '__primary', s._col || cfg.dateCol, {
+        isPrimary:true, thresholdLabel:`عاجل (≤ ${cfg.threshold} ${cfg.threshold===1?'يوم':'أيام'})`, flagMissing: cfg.flagEmpty
+      });
+    } else if(cfg.type==='status'){
+      const active = s.rows.filter(r=>r.__sev==='active').length;
+      const inactive = s.rows.length-active;
+      controls += `<div class="alert-block">
+        <div class="alert-block-title">⚙️ عمود: «${esc(s._col || cfg.statusCol)}» — التنبيه الخاص: الصفوف الفعالة فقط</div>
+        <div class="chip-row" id="chips-${cfg.id}">
+          ${chip('__primary','all', s, 'الكل', s.rows.length)}
+          ${chip('__primary','active', s, SEV_LABELS.active, active, 'active')}
+          ${chip('__primary','inactive', s, SEV_LABELS.inactive, inactive, 'inactive')}
+        </div>
+      </div>`;
+    } else if(cfg.type==='sum'){
+      const total = s.rows.reduce((a,r)=>a+r.__amount,0);
+      controls += `<div class="kpi-grid" style="margin-bottom:16px;">
+        <div class="kpi-card tone-red">
+          <div class="kpi-label">إجمالي المخالفات (ريال سعودي) — عمود: «${esc(s._col || cfg.sumCol)}»</div>
+          <div class="kpi-value">${fmtNum(total)}</div>
+          <div class="kpi-foot">عبر ${s.rows.length} سجل</div>
+        </div>
+      </div>`;
+    }
+
+    // ANY other expiry-date column this sheet has, beyond the one above, gets its own clearly
+    // labeled alert block too (plain 90/60/30-day tiering), so nothing with a real expiry date
+    // goes unnoticed just because it wasn't the officially-tracked column for this tab.
+    (s.extraDateCols||[]).forEach(col=>{
+      controls += buildDateAlertBlock(cfg, s, col, col, { isPrimary:false });
+    });
+  }
+
+  sec.innerHTML = `
+    <div class="topbar">
+      <div>
+        <h1>${esc(cfg.title)}</h1>
+        <p class="sub">${esc(cfg.category)} · ${sourceLabel(cfg)}</p>
+      </div>
+      <div class="topbar-actions">
+        <div class="search-box">
+          <input type="text" placeholder="بحث في الجدول..." id="search-${cfg.id}" value="${esc(s.search)}">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </div>
+        ${s.status==='ready' ? `
+        <button class="btn" id="export-${cfg.id}">⬇ تصدير Excel</button>
+        <button class="btn" id="print-${cfg.id}">🖨 طباعة</button>` : ''}
+        <button class="btn" id="refresh-${cfg.id}">↻ تحديث</button>
+      </div>
+    </div>
+    ${s.status==='loading' ? `<div class="state"><div class="spinner"></div>جارِ تحميل البيانات...</div>` : ''}
+    ${s.status==='error' ? `<div class="state err">تعذّر تحميل بيانات هذا الشيت.<br><span style="font-size:12px;">${esc(s.error)}</span><br><br><a href="${cfg.url}" target="_blank" rel="noopener">فتح مصدر البيانات مباشرة ↗</a></div>` : ''}
+    ${s.status==='ready' ? `<div id="controls-${cfg.id}">${controls}</div><div id="tablewrap-${cfg.id}"></div>` : ''}
+  `;
+
+  if(s.status==='ready'){
+    renderTable(cfg);
+    document.getElementById(`search-${cfg.id}`).addEventListener('input', e=>{ s.search = e.target.value; renderTable(cfg); });
+    document.getElementById(`controls-${cfg.id}`)?.querySelectorAll('.chip').forEach(el=>{
+      el.addEventListener('click', ()=>{
+        s.filterCol = el.dataset.col;
+        s.filter = el.dataset.filter;
+        renderSheetSection(cfg);
+      });
+    });
+  }
+  document.getElementById(`refresh-${cfg.id}`)?.addEventListener('click', ()=>{
+    s.status='idle';
+    appsScriptStatus='idle'; appsScriptPayload=null; appsScriptPromise=null;
+    renderSheetSection(cfg);
+    fetchSheet(cfg.id).then(()=>{ renderSheetSection(cfg); updateNavCounts(); }).catch(()=>renderSheetSection(cfg));
+  });
+  document.getElementById(`export-${cfg.id}`)?.addEventListener('click', ()=> exportSheetExcel(cfg));
+  document.getElementById(`print-${cfg.id}`)?.addEventListener('click', ()=> printSheet());
+}
+
+function sourceLabel(cfg){
+  if(cfg.type==='date') return `يتتبّع عمود «${cfg.dateCol}»`;
+  if(cfg.type==='status') return `يتتبّع عمود «${cfg.statusCol}»`;
+  if(cfg.type==='sum') return `يجمع عمود «${cfg.sumCol}»`;
+  return '';
+}
+
+// Builds one clearly-labeled alert block (heading naming the exact column + chip row with
+// live counts) for either the sheet's officially-tracked column or one of its extra expiry
+// columns. Every block shares the same s.filterCol/s.filter state, so clicking any chip
+// anywhere filters the table by that specific column + severity.
+function buildDateAlertBlock(cfg, s, colKey, colLabel, opts){
+  opts = opts || {};
+  const counts = {expired:0,critical:0,warn30:0,warn60:0,warn90:0,ok:0,missing:0};
+  s.rows.forEach(r=>{
+    const sev = opts.isPrimary ? r.__sev : (r.__extra && r.__extra[colKey] ? r.__extra[colKey].sev : null);
+    if(sev) counts[sev] = (counts[sev]||0)+1;
+  });
+  const chips = [];
+  chips.push(chip(colKey,'all', s, 'الكل', s.rows.length));
+  chips.push(chip(colKey,'expired', s, SEV_LABELS.expired, counts.expired, 'expired'));
+  if(opts.isPrimary){
+    chips.push(chip(colKey,'critical', s, opts.thresholdLabel, counts.critical, 'critical'));
+  }
+  if(opts.isPrimary ? opts.flagMissing : counts.missing>0){
+    chips.push(chip(colKey,'missing', s, SEV_LABELS.missing, counts.missing, 'missing'));
+  }
+  chips.push(chip(colKey,'warn30', s, SEV_LABELS.warn30, counts.warn30, 'warn30'));
+  chips.push(chip(colKey,'warn60', s, SEV_LABELS.warn60, counts.warn60, 'warn60'));
+  chips.push(chip(colKey,'warn90', s, SEV_LABELS.warn90, counts.warn90, 'warn90'));
+  chips.push(chip(colKey,'ok', s, SEV_LABELS.ok, counts.ok, 'ok'));
+
+  const heading = opts.isPrimary
+    ? `🔔 عمود: «${esc(colLabel)}» — التنبيه الخاص المطلوب`
+    : `📅 عمود إضافي: «${esc(colLabel)}» — تنبيه عام (أقل من 90/60/30 يوم)`;
+
+  return `<div class="alert-block">
+    <div class="alert-block-title">${heading}</div>
+    <div class="chip-row">${chips.join('')}</div>
+  </div>`;
+}
+
+function chip(colKey, key, s, label, count, sevClass){
+  const active = s.filterCol===colKey && s.filter===key;
+  return `<div class="chip ${active?'active':''} ${sevClass?('sev-'+sevClass):''}" data-col="${esc(colKey)}" data-filter="${key}">
+    ${sevClass?'<span class="dot"></span>':''}<span>${esc(label)}</span><span class="n">${count}</span>
+  </div>`;
+}
+
+function renderTable(cfg){
+  const s = store[cfg.id];
+  const wrap = document.getElementById(`tablewrap-${cfg.id}`);
+  let rows = s.rows.slice();
+
+  if(s.filter && s.filter!=='all'){
+    if(s.filterCol==='__primary'){
+      rows = rows.filter(r=> r.__sev===s.filter);
+    } else if(s.filterCol){
+      rows = rows.filter(r=> r.__extra && r.__extra[s.filterCol] && r.__extra[s.filterCol].sev===s.filter);
+    }
+  }
+  if(s.search.trim()){
+    const q = s.search.trim().toLowerCase();
+    rows = rows.filter(r=> s.fields.some(f=> String(r[f]||'').toLowerCase().includes(q)));
+  }
+  if(s.sortCol){
+    const col = s.sortCol;
+    rows.sort((a,b)=>{
+      let va=a[col], vb=b[col];
+      if(col===s._col && cfg.type==='date'){ va=a.__days; vb=b.__days; va = va===null?Infinity:va; vb=vb===null?Infinity:vb; }
+      else if(col===s._col && cfg.type==='sum'){ va=a.__amount; vb=b.__amount; }
+      else {
+        const na=parseFloat(va), nb=parseFloat(vb);
+        if(!isNaN(na) && !isNaN(nb) && String(va).trim()!=='' && String(vb).trim()!==''){ va=na; vb=nb; }
+        else { va=String(va||''); vb=String(vb||''); }
+      }
+      if(va<vb) return -1*s.sortDir; if(va>vb) return 1*s.sortDir; return 0;
+    });
+  } else if(cfg.type==='sum'){
+    rows.sort((a,b)=> b.__amount - a.__amount);
+  } else if(cfg.type==='date'){
+    rows.sort((a,b)=> (a.__days===null?Infinity:a.__days) - (b.__days===null?Infinity:b.__days));
+  }
+
+  if(rows.length===0){
+    wrap.innerHTML = `<div class="state">لا توجد صفوف مطابقة للفلتر الحالي.</div>`;
+    return;
+  }
+
+  const fields = s.fields;
+  const extraCols = s.extraDateCols || [];
+  let thead = fields.map(f=>{
+    const arrow = s.sortCol===f ? (s.sortDir===1?'▲':'▼') : '';
+    const mark = f===s._col ? ' 🔎' : (extraCols.includes(f) ? ' 🗓️' : '');
+    return `<th data-col="${esc(f)}">${esc(f)}${mark} <span class="arrow">${arrow}</span></th>`;
+  }).join('');
+  if(cfg.type==='sum') thead += `<th>الحالة</th>`; else if(cfg.type!=='status') {} 
+
+  let tbody = rows.map(row=>{
+    const rowClass = (cfg.type==='date' && (row.__sev==='expired'||row.__sev==='critical')) ? `row-${row.__sev==='expired'?'expired':'critical'}` : '';
+    let tds = fields.map(f=>{
+      const v = row[f];
+      if(f===s._col && (cfg.type==='date' || cfg.type==='status')){
+        return `<td><span class="cell-badge sev-${row.__sev}">${esc(v||'—')} · ${esc(row.__label)}</span></td>`;
+      }
+      if(f===s._col && cfg.type==='sum'){
+        return `<td class="num">${fmtNum(row.__amount)}</td>`;
+      }
+      if(extraCols.includes(f) && row.__extra && row.__extra[f]){
+        const ex = row.__extra[f];
+        return `<td><span class="cell-badge sev-${ex.sev}">${esc(v||'—')} · ${esc(ex.label)}</span></td>`;
+      }
+      return `<td>${esc(v)}</td>`;
+    }).join('');
+    return `<tr class="${rowClass}">${tds}</tr>`;
+  }).join('');
+
+  const extraNote = extraCols.length
+    ? `<div class="foot-note">🗓️ الأعمدة دي فيها أعمدة تاريخ إضافية بيتم تنبيهها تلقائيًا بنفس نظام أقل من 90/60/30 يوم: ${extraCols.map(esc).join('، ')}</div>`
+    : '';
+
+  wrap.innerHTML = `<div class="table-wrap"><table><thead><tr>${thead}</tr></thead><tbody>${tbody}</tbody></table></div>
+    ${extraNote}
+    <div class="foot-note">عرض ${rows.length} من ${s.rows.length} صف · اضغط على اسم العمود للفرز</div>`;
+
+  wrap.querySelectorAll('th[data-col]').forEach(th=>{
+    th.addEventListener('click', ()=>{
+      const col = th.dataset.col;
+      if(s.sortCol===col) s.sortDir*=-1; else { s.sortCol=col; s.sortDir=1; }
+      renderTable(cfg);
+    });
+  });
+}
+
+/* ============================= RENDER: HOME ============================= */
+function renderHome(){
+  const sec = document.getElementById('sec-home');
+  const anyLoaded = SHEETS.some(s=> store[s.id].status==='ready');
+  const anyLoading = SHEETS.some(s=> store[s.id].status==='loading');
+  const allDone = SHEETS.every(s=> store[s.id].status==='ready' || store[s.id].status==='error');
+
+  sec.innerHTML = `
+    <div class="topbar">
+      <div>
+        <h1>الرئيسية — لوحة العلاقات الحكومية</h1>
+        <p class="sub">نظرة شاملة على جميع المتصفحات: التأمين، التأشيرات، الإقامات، الزوار، والمخالفات</p>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn" id="export-all">⬇ تصدير تقرير شامل</button>
+        <button class="btn" id="print-home">🖨 طباعة</button>
+        <button class="btn primary" id="refresh-all">↻ تحديث كل البيانات</button>
+      </div>
+    </div>
+    <div id="home-body">
+      ${!anyLoaded && !anyLoading ? `<div class="state"><div class="spinner"></div>جارِ تحميل جميع الشيتات...</div>` : ''}
+    </div>
+  `;
+  document.getElementById('refresh-all').addEventListener('click', loadAllAndRenderHome);
+  document.getElementById('export-all').addEventListener('click', exportAllExcel);
+  document.getElementById('print-home').addEventListener('click', ()=> window.print());
+
+  if(anyLoaded || allDone) renderHomeBody();
+}
+
+function loadAllAndRenderHome(){
+  SHEETS.forEach(s=> store[s.id].status='idle');
+  appsScriptStatus='idle'; appsScriptPayload=null; appsScriptPromise=null;
+  renderHome();
+  Promise.allSettled(SHEETS.map(s=>fetchSheet(s.id))).then(()=>{
+    renderHomeBody(); updateNavCounts();
+    if(location.hash.replace('#','')!=='home' && location.hash!=='') renderSheetSection(SHEETS.find(s=>s.id===location.hash.replace('#',''))||null);
+  });
+}
+
+function renderHomeBody(){
+  const body = document.getElementById('home-body');
+  if(!body) return;
+
+  const dateSheets = SHEETS.filter(s=>s.type==='date');
+  let totalUrgent=0, totalMissing=0, totalRecords=0, totalActiveUnused=0, totalViolations=0, errCount=0;
+  const feed=[];
+  const missingList=[];
+  const unusedList=[];
+  const violationsList=[];
+
+  SHEETS.forEach(cfg=>{
+    const s = store[cfg.id];
+    if(s.status==='error'){ errCount++; return; }
+    if(s.status!=='ready') return;
+    totalRecords += s.rows.length;
+    if(cfg.type==='date'){
+      s.rows.forEach(r=>{
+        const desc = pickDescriptor(r, s.fields, s._col);
+        if(r.__sev==='expired'||r.__sev==='critical'){
+          totalUrgent++;
+          feed.push({ sheet:cfg, days:r.__days===null?-99999:r.__days, sev:r.__sev, label:r.__label, desc });
+        }
+        if(r.__sev==='missing'){
+          totalMissing++;
+          missingList.push({ sheet:cfg, days:null, sev:'missing', label:SEV_LABELS.missing, desc });
+        }
+      });
+    } else if(cfg.type==='status'){
+      totalActiveUnused += s.rows.filter(r=>r.__sev==='active').length;
+      s.rows.filter(r=>r.__sev==='active').forEach(r=>{
+        unusedList.push({ sheet:cfg, sev:'active', label:SEV_LABELS.active, desc: pickDescriptor(r, s.fields, s._col) });
+      });
+    } else if(cfg.type==='sum'){
+      totalViolations += s.rows.reduce((a,r)=>a+r.__amount,0);
+      s.rows.forEach(r=>{
+        violationsList.push({ sheet:cfg, amount:r.__amount, desc: pickDescriptor(r, s.fields, s._col) });
+      });
+      violationsList.sort((a,b)=> b.amount-a.amount);
+    }
+  });
+
+  feed.sort((a,b)=> a.days-b.days);
+  const topFeed = feed.slice(0,18);
+
+  // Cache full lists so KPI-card clicks can open a detailed report without recomputing
+  homeReportData.urgent = feed;
+  homeReportData.missing = missingList;
+  homeReportData.unused = unusedList;
+  homeReportData.violations = violationsList;
+
+  const boardRows = topFeed.length ? topFeed.map((f,i)=>`
+    <div class="board-row" style="animation-delay:${i*35}ms" data-go="${f.sheet.id}">
+      <div class="cat">${esc(f.sheet.category)}</div>
+      <div class="desc" title="${esc(f.desc)}">${esc(f.desc)}</div>
+      <div class="flap sev-${f.sev}">${esc(f.label)}</div>
+      <div class="go" data-go="${f.sheet.id}">${esc(f.sheet.title)} ↗</div>
+    </div>`).join('') : `<div class="board-empty">${SHEETS.every(s=>store[s.id].status==='ready') ? 'لا توجد تنبيهات عاجلة حالياً ✅' : 'جارِ تجميع التنبيهات...'}</div>`;
+
+  body.innerHTML = `
+    <div class="kpi-grid">
+      <div class="kpi-card tone-red kpi-clickable" data-report="urgent">
+        <div class="kpi-label">تنبيهات عاجلة (منتهية / قريبة)</div>
+        <div class="kpi-value">${totalUrgent}</div>
+        <div class="kpi-foot">عبر جميع شيتات التواريخ · اضغط لعرض التقرير</div>
+      </div>
+      <div class="kpi-card tone-orange kpi-clickable" data-report="missing">
+        <div class="kpi-label">بيانات ناقصة (بدون تاريخ)</div>
+        <div class="kpi-value">${totalMissing}</div>
+        <div class="kpi-foot">التأمين الطبي فقط · اضغط لعرض التقرير</div>
+      </div>
+      <div class="kpi-card tone-gold kpi-clickable" data-report="unused">
+        <div class="kpi-label">تأشيرات فعالة غير مستخدمة</div>
+        <div class="kpi-value">${totalActiveUnused}</div>
+        <div class="kpi-foot">خروج وعودة · اضغط لعرض التقرير</div>
+      </div>
+      <div class="kpi-card tone-blue kpi-clickable" data-report="violations">
+        <div class="kpi-label">إجمالي المخالفات المرورية</div>
+        <div class="kpi-value small">${fmtNum(totalViolations)} <span style="font-size:12px;">ريال</span></div>
+        <div class="kpi-foot">جميع الإقامات · اضغط لعرض التقرير</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">إجمالي السجلات المحمّلة</div>
+        <div class="kpi-value">${totalRecords}</div>
+        <div class="kpi-foot">${errCount ? errCount+' شيت تعذّر تحميله' : 'كل الشيتات محدَّثة'}</div>
+      </div>
+    </div>
+
+    <div class="board-wrap">
+      <div class="board-head">
+        <h2>لوحة القادمين — أقرب التنبيهات استحقاقاً</h2>
+        <div class="live"><span class="blip"></span> تحديث حي</div>
+      </div>
+      ${boardRows}
+    </div>
+
+    <div class="mini-grid" id="mini-grid"></div>
+  `;
+
+  const miniGrid = document.getElementById('mini-grid');
+  miniGrid.innerHTML = SHEETS.map(cfg=>{
+    const s = store[cfg.id];
+    let stat1='–', stat2='–', label1='—', label2='—';
+    if(s.status==='ready'){
+      if(cfg.type==='date'){
+        const urgent = s.rows.filter(r=>r.__sev==='expired'||r.__sev==='critical').length;
+        stat1 = s.rows.length; label1='إجمالي';
+        stat2 = urgent; label2='عاجل';
+      } else if(cfg.type==='status'){
+        stat1 = s.rows.length; label1='إجمالي';
+        stat2 = s.rows.filter(r=>r.__sev==='active').length; label2='فعالة';
+      } else if(cfg.type==='sum'){
+        stat1 = s.rows.length; label1='سجل';
+        stat2 = fmtNum(s.rows.reduce((a,r)=>a+r.__amount,0)); label2='ريال';
+      }
+    } else if(s.status==='error'){ label1='خطأ'; stat1='!'; }
+    return `<div class="mini-card" data-go="${cfg.id}">
+      <div class="mc-top">
+        <div><div class="mc-title">${esc(cfg.title)}</div><div class="mc-cat">${esc(cfg.category)}</div></div>
+      </div>
+      <div class="mc-stats">
+        <div class="mc-stat"><b>${stat1}</b><span>${label1}</span></div>
+        <div class="mc-stat"><b>${stat2}</b><span>${label2}</span></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.querySelectorAll('[data-go]').forEach(el=>{
+    el.addEventListener('click', ()=> location.hash = el.dataset.go);
+  });
+  document.querySelectorAll('.kpi-clickable').forEach(el=>{
+    el.addEventListener('click', ()=> openReportModal(el.dataset.report));
+  });
+}
+
+/* ============================= ROUTER ============================= */
+function route(){
+  const id = (location.hash||'#home').replace('#','') || 'home';
+  const valid = id==='home' || SHEETS.some(s=>s.id===id);
+  const target = valid ? id : 'home';
+  showSection(target);
+
+  if(target==='home'){
+    renderHome();
+    const noneLoaded = SHEETS.every(s=> store[s.id].status==='idle');
+    if(noneLoaded) loadAllAndRenderHome();
+  } else {
+    const cfg = SHEETS.find(s=>s.id===target);
+    const s = store[target];
+    if(s.status==='idle'){
+      renderSheetSection(cfg);
+      fetchSheet(target).then(()=>{ renderSheetSection(cfg); updateNavCounts(); }).catch(()=>renderSheetSection(cfg));
+    } else {
+      renderSheetSection(cfg);
+    }
+  }
+}
+
+/* ============================= NAVIGATION HELPERS ============================= */
+const EMBEDDED = (function(){ try{ return window.self !== window.top; }catch(e){ return true; } })();
+function goBack(){
+  if(EMBEDDED){
+    try{ window.parent.postMessage({type:'gov-close'}, '*'); return; }catch(e){}
+  }
+  if(document.referrer){ location.href = document.referrer; return; }
+  history.back();
+}
+
+/* ============================= EXCEL EXPORT / PRINT ============================= */
+function currentVisibleRows(cfg){
+  // Re-derive the rows exactly as shown in the table right now (respects filter + search + sort)
+  const s = store[cfg.id];
+  let rows = s.rows.slice();
+  if(s.filter && s.filter!=='all'){
+    if(s.filterCol==='__primary'){
+      rows = rows.filter(r=> r.__sev===s.filter);
+    } else if(s.filterCol){
+      rows = rows.filter(r=> r.__extra && r.__extra[s.filterCol] && r.__extra[s.filterCol].sev===s.filter);
+    }
+  }
+  if(s.search.trim()){
+    const q = s.search.trim().toLowerCase();
+    rows = rows.filter(r=> s.fields.some(f=> String(r[f]||'').toLowerCase().includes(q)));
+  }
+  return rows;
+}
+function exportSheetExcel(cfg){
+  if(typeof XLSX==='undefined'){ alert('تعذّر تحميل مكتبة التصدير، تحقق من الاتصال بالإنترنت.'); return; }
+  const s = store[cfg.id];
+  const rows = currentVisibleRows(cfg);
+  const fields = s.fields.slice();
+  if(cfg.type==='date') fields.push('الحالة');
+  if(cfg.type==='status') fields.push('الحالة');
+  const data = rows.map(r=>{
+    const o = {};
+    s.fields.forEach(f=> o[f] = r[f] ?? '');
+    if(cfg.type==='date' || cfg.type==='status') o['الحالة'] = r.__label;
+    return o;
+  });
+  const ws = XLSX.utils.json_to_sheet(data, {header:fields});
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, cfg.title.slice(0,28) || 'بيانات');
+  XLSX.writeFile(wb, `${cfg.title}_${new Date().toISOString().split('T')[0]}.xlsx`);
+}
+function printSheet(){ window.print(); }
+function exportAllExcel(){
+  if(typeof XLSX==='undefined'){ alert('تعذّر تحميل مكتبة التصدير، تحقق من الاتصال بالإنترنت.'); return; }
+  const wb = XLSX.utils.book_new();
+  let any=false;
+  SHEETS.forEach(cfg=>{
+    const s = store[cfg.id];
+    if(s.status!=='ready' || !s.rows.length) return;
+    any=true;
+    const data = s.rows.map(r=>{
+      const o={};
+      s.fields.forEach(f=> o[f]=r[f] ?? '');
+      if(cfg.type==='date'||cfg.type==='status') o['الحالة']=r.__label;
+      return o;
+    });
+    const ws = XLSX.utils.json_to_sheet(data);
+    XLSX.utils.book_append_sheet(wb, ws, cfg.title.slice(0,28));
+  });
+  if(!any){ alert('لا توجد بيانات محمّلة بعد للتصدير.'); return; }
+  XLSX.writeFile(wb, `تقرير_العلاقات_الحكومية_${new Date().toISOString().split('T')[0]}.xlsx`);
+}
+
+/* ============================= KPI REPORT MODAL ============================= */
+const REPORT_META = {
+  urgent:     { title:'تقرير التنبيهات العاجلة', sub:'كل الصفوف المنتهية أو القريبة من الاستحقاق عبر جميع شيتات التواريخ' },
+  missing:    { title:'تقرير البيانات الناقصة',  sub:'صفوف بدون تاريخ انتهاء تأمين مسجَّل (المقيمين والزائرين)' },
+  unused:     { title:'تقرير التأشيرات الفعالة غير المستخدمة', sub:'تأشيرات خروج وعودة فعالة لم تُستخدم بعد' },
+  violations: { title:'تقرير المخالفات المرورية', sub:'كل السجلات مرتّبة تنازليًا حسب قيمة المخالفة' },
+};
+let currentReportKind = null;
+
+function openReportModal(kind){
+  currentReportKind = kind;
+  const meta = REPORT_META[kind];
+  const list = homeReportData[kind] || [];
+  document.getElementById('reportModalTitle').textContent = meta.title;
+  document.getElementById('reportModalSub').textContent = `${meta.sub} — ${list.length} سجل`;
+
+  const body = document.getElementById('reportModalBody');
+  if(!list.length){
+    body.innerHTML = `<div class="state">لا توجد سجلات لهذا التقرير حاليًا ✅</div>`;
+  } else if(kind==='violations'){
+    body.innerHTML = `<div class="table-wrap"><table><thead><tr><th>الشيت</th><th>البيان</th><th>القيمة (ريال)</th></tr></thead><tbody>
+      ${list.map(r=>`<tr><td>${esc(r.sheet.title)}</td><td>${esc(r.desc)}</td><td class="num">${fmtNum(r.amount)}</td></tr>`).join('')}
+    </tbody></table></div>`;
+  } else {
+    body.innerHTML = `<div class="table-wrap"><table><thead><tr><th>الشيت</th><th>البيان</th><th>الحالة</th></tr></thead><tbody>
+      ${list.map(r=>`<tr><td>${esc(r.sheet.title)}</td><td>${esc(r.desc)}</td><td><span class="cell-badge sev-${r.sev}">${esc(r.label)}</span></td></tr>`).join('')}
+    </tbody></table></div>
+    <div class="foot-note">اضغط على اسم أي شيت في نافذة أخرى للانتقال إليه مباشرة من القائمة الجانبية.</div>`;
+  }
+  document.getElementById('reportModal').classList.add('open');
+}
+function closeReportModal(){
+  document.getElementById('reportModal').classList.remove('open');
+  currentReportKind = null;
+}
+document.getElementById('reportModal').addEventListener('click', e=>{ if(e.target.id==='reportModal') closeReportModal(); });
+document.getElementById('reportCloseBtn').addEventListener('click', closeReportModal);
+document.getElementById('reportPrintBtn').addEventListener('click', ()=>{
+  document.body.classList.add('printing-report');
+  window.print();
+  setTimeout(()=> document.body.classList.remove('printing-report'), 500);
+});
+document.getElementById('reportExportBtn').addEventListener('click', ()=>{
+  if(!currentReportKind) return;
+  if(typeof XLSX==='undefined'){ alert('تعذّر تحميل مكتبة التصدير، تحقق من الاتصال بالإنترنت.'); return; }
+  const list = homeReportData[currentReportKind] || [];
+  if(!list.length){ alert('لا توجد بيانات لتصديرها.'); return; }
+  const data = currentReportKind==='violations'
+    ? list.map(r=>({ 'الشيت': r.sheet.title, 'البيان': r.desc, 'القيمة (ريال)': r.amount }))
+    : list.map(r=>({ 'الشيت': r.sheet.title, 'البيان': r.desc, 'الحالة': r.label }));
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, REPORT_META[currentReportKind].title.slice(0,28));
+  XLSX.writeFile(wb, `${REPORT_META[currentReportKind].title}_${new Date().toISOString().split('T')[0]}.xlsx`);
+});
+
+/* ============================= INIT ============================= */
+buildNav();
+ensureSections();
+window.addEventListener('hashchange', route);
+route();
+</script>
+</body>
+</html>
